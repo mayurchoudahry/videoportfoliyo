@@ -141,7 +141,7 @@ export default function ContactSection() {
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-gray-400" />
-                  <span>Udaipur, Rajasthan, Indaia</span>
+                  <span>Udaipur, Rajasthan, India</span>
                 </div>
               </div>
             </div>

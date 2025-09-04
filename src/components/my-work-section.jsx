@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Play } from 'lucide-react';
+import { Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TextEffect } from "@/components/ui/text-effect";
 import { Button } from '@/components/ui/button';
 import { H3 } from '@/components/ui/typography';
@@ -46,9 +46,9 @@ const cameraProjects = [
   },
   {
     id: 5,
-    title: "Travel Vlog",
+    title: "Martini Biestro",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980637/IMG_9967_zjqmnv.mov",
-    category: "Travel"
+    category: "Food"
   }
 ];
 
@@ -102,86 +102,96 @@ const phoneProjects = [
   },
 ];
 
-// Custom Draggable Carousel Component
-const DraggableCarousel = ({ children, className = "", cardWidth = 320 }) => {
+// Navigation Carousel Component
+const NavigationCarousel = ({ children, className = "", cardWidth = 320 }) => {
   const containerRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setStartX(e.pageX - containerRef.current.offsetLeft);
-    setScrollLeft(containerRef.current.scrollLeft);
-    containerRef.current.style.cursor = 'grabbing';
-    containerRef.current.style.userSelect = 'none';
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    containerRef.current.style.cursor = 'grab';
-    containerRef.current.style.userSelect = 'auto';
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - containerRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    containerRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  // Touch events for mobile
-  const handleTouchStart = (e) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX - containerRef.current.offsetLeft);
-    setScrollLeft(containerRef.current.scrollLeft);
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    const x = e.touches[0].pageX - containerRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    containerRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [maxIndex, setMaxIndex] = useState(0);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('mouseleave', handleMouseUp);
-      return () => {
-        container.removeEventListener('mouseleave', handleMouseUp);
-      };
+    if (containerRef.current) {
+      const container = containerRef.current;
+      const containerWidth = container.offsetWidth;
+      const totalWidth = container.scrollWidth;
+      const visibleCards = Math.floor(containerWidth / cardWidth);
+      const totalCards = children.length;
+      setMaxIndex(Math.max(0, totalCards - visibleCards));
     }
-  }, []);
+  }, [children.length, cardWidth]);
+
+  const scrollTo = (index) => {
+    if (containerRef.current) {
+      const scrollPosition = index * cardWidth;
+      containerRef.current.scrollTo({
+        left: scrollPosition,
+        behavior: 'smooth'
+      });
+      setCurrentIndex(index);
+    }
+  };
+
+  const handlePrevious = () => {
+    const newIndex = Math.max(0, currentIndex - 1);
+    scrollTo(newIndex);
+  };
+
+  const handleNext = () => {
+    const newIndex = Math.min(maxIndex, currentIndex + 1);
+    scrollTo(newIndex);
+  };
+
+  const canGoPrevious = currentIndex > 0;
+  const canGoNext = currentIndex < maxIndex;
 
   return (
     <div className={`relative ${className}`}>
+      {/* Left Navigation Button */}
+      <button
+        onClick={handlePrevious}
+        disabled={!canGoPrevious}
+        className={`absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/30 ${
+          !canGoPrevious ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
+        }`}
+      >
+        <ChevronLeft className="w-6 h-6 text-white" />
+      </button>
+
+      {/* Right Navigation Button */}
+      <button
+        onClick={handleNext}
+        disabled={!canGoNext}
+        className={`absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/30 ${
+          !canGoNext ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
+        }`}
+      >
+        <ChevronRight className="w-6 h-6 text-white" />
+      </button>
+
+      {/* Carousel Container */}
       <div
         ref={containerRef}
-        className="flex overflow-x-auto scrollbar-hide gap-6 py-4 cursor-grab select-none"
+        className="flex overflow-x-hidden gap-6 py-4"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           WebkitScrollbar: { display: 'none' }
         }}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {children}
       </div>
       
-      {/* Gradient overlays to indicate scrollability */}
-      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
-      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
+      {/* Progress Indicators */}
+      <div className="flex justify-center mt-4 space-x-2">
+        {Array.from({ length: maxIndex + 1 }, (_, index) => (
+          <button
+            key={index}
+            onClick={() => scrollTo(index)}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              index === currentIndex ? 'bg-white' : 'bg-white/40 hover:bg-white/60'
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 };
@@ -465,7 +475,7 @@ export default function MyWorkSection() {
           </motion.div>
 
           <div ref={cameraGridRef} className="mb-16">
-            <DraggableCarousel className="py-4" cardWidth={320}>
+            <NavigationCarousel className="py-4" cardWidth={320}>
               {cameraProjects.map((project) => (
                 <div key={project.id} className="w-80 flex-shrink-0">
                   <VideoCard 
@@ -477,7 +487,7 @@ export default function MyWorkSection() {
                   />
                 </div>
               ))}
-            </DraggableCarousel>
+            </NavigationCarousel>
           </div>
         </div>
 
@@ -503,7 +513,7 @@ export default function MyWorkSection() {
           </motion.div>
 
           <div ref={landscapeGridRef} className="mb-16">
-            <DraggableCarousel className="py-4" cardWidth={384}>
+            <NavigationCarousel className="py-4" cardWidth={384}>
               {landscapeProjects.map((project) => (
                 <div key={project.id} className="w-96 flex-shrink-0">
                   <VideoCard 
@@ -515,7 +525,7 @@ export default function MyWorkSection() {
                   />
                 </div>
               ))}
-            </DraggableCarousel>
+            </NavigationCarousel>
           </div>
         </div>
 
@@ -541,7 +551,7 @@ export default function MyWorkSection() {
           </motion.div>
 
           <div ref={phoneGridRef}>
-            <DraggableCarousel className="py-4" cardWidth={256}>
+            <NavigationCarousel className="py-4" cardWidth={256}>
               {phoneProjects.map((project) => (
                 <div key={project.id} className="w-64 flex-shrink-0">
                   <VideoCard 
@@ -553,7 +563,7 @@ export default function MyWorkSection() {
                   />
                 </div>
               ))}
-            </DraggableCarousel>
+            </NavigationCarousel>
           </div>
         </div>
       </div>
