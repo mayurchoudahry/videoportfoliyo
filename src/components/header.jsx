@@ -1,4 +1,5 @@
 "use client"
+
 import {
     Activity,
     Component,
@@ -8,6 +9,7 @@ import {
     ScrollText,
     SunMoon,
     Video,
+    Instagram,
     User
   } from 'lucide-react';
   import Image from 'next/image';
@@ -49,6 +51,13 @@ import {
       ),
       href: 'whatsapp',
     },
+    {
+      title: 'Instagram',
+      icon: (
+        <Instagram className='h-full w-full text-neutral-600 dark:text-neutral-300' />
+      ),
+      href: 'instagram',
+    },
   ];
   
   export function Header() {
@@ -58,6 +67,12 @@ import {
         const message = 'Hi! I saw your video portfolio and would like to discuss a project.';
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
+        return;
+      }
+      
+      if (href === 'instagram') {
+        const instagramUrl = 'https://instagram.com/_mayur_choudhary';
+        window.open(instagramUrl, '_blank');
         return;
       }
       

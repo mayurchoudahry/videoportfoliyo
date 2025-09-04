@@ -46,8 +46,36 @@ const cameraProjects = [
   {
     id: 5,
     title: "Travel Vlog",
-    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980654/IMG_6203_faaqio.mov",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980637/IMG_9967_zjqmnv.mov",
     category: "Travel"
+  }
+];
+
+// Landscape video projects
+const landscapeProjects = [
+  {
+    id: 10,
+    title: "Cinematic Landscape",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756981631/IMG_8452_hq8qpv.mov",
+    category: ""
+  },
+  {
+    id: 11,
+    title: "Urban Exploration",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756981616/IMG_8450_n3dddy.mov",
+    category: "City Timelapses"
+  },
+  {
+    id: 12,
+    title: "Golden Hour",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756981624/IMG_8451_il5gpt.mov",
+    category: "Cinematic"
+  },
+  {
+    id: 13,
+    title: "Coastal Scenes",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757011361/IMG_8461_nqfdif.mov",
+    category: "Landscape"
   }
 ];
 
@@ -55,27 +83,21 @@ const cameraProjects = [
 const phoneProjects = [
   {
     id: 6,
-    title: "Creative Reel 1",
-    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756981631/IMG_8452_hq8qpv.mov",
-    category: "Social Media"
+    title: "Bartender Brothers",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757010152/What_a_baraat_to_remember_at_the_grand_Indian_wedding_in_Bopal_Dhols_beating_colors_flying_an_dyflff.mp4",
+    category: "Event"
   },
   {
     id: 7,
-    title: "Creative Reel 1",
-    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756981624/IMG_8451_il5gpt.mov",
-    category: "Social Media"
+    title: "Bartender Brothers",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757010154/Night_of_Glitz_Glamour_Creativity_We_had_the_absolute_honor_of_being_part_of_the_stunning_S_1_raeaun.mp4",
+    category: "Event"
   },
   {
     id: 8,
-    title: "Creative Reel 1",
-    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980647/IMG_6529_yyc0rh.mov",
-    category: "Social Media"
-  },
-  {
-    id: 9,
-    title: "Creative Reel 1",
-    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756981616/IMG_8450_n3dddy.mov",
-    category: "Social Media"
+    title: "Bartender Brothers ",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757010154/Night_of_Glitz_Glamour_Creativity_We_had_the_absolute_honor_of_being_part_of_the_stunning_S_jola64.mp4",
+    category: "Event"
   },
   
 ];
@@ -84,6 +106,7 @@ export default function MyWorkSection() {
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
   const cameraGridRef = useRef(null);
+  const landscapeGridRef = useRef(null);
   const phoneGridRef = useRef(null);
   const [playingVideos, setPlayingVideos] = useState(new Set());
 
@@ -127,6 +150,32 @@ export default function MyWorkSection() {
             stagger: 0.1,
             scrollTrigger: {
               trigger: cameraGridRef.current,
+              start: "top 80%",
+              end: "bottom 20%",
+              toggleActions: "play none none reverse"
+            }
+          }
+        );
+      }
+
+      // Landscape grid items stagger animation
+      const landscapeGridItems = landscapeGridRef.current?.children;
+      if (landscapeGridItems) {
+        gsap.fromTo(landscapeGridItems,
+          {
+            opacity: 0,
+            y: 60,
+            scale: 0.8
+          },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.8,
+            ease: "power3.out",
+            stagger: 0.1,
+            scrollTrigger: {
+              trigger: landscapeGridRef.current,
               start: "top 80%",
               end: "bottom 20%",
               toggleActions: "play none none reverse"
@@ -310,6 +359,91 @@ export default function MyWorkSection() {
           </div>
         </div>
 
+        {/* Landscape Video Section */}
+        <div className="mb-20">
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <TextEffect 
+              per="char" 
+              preset="fade" 
+              className="text-3xl md:text-5xl font-bold mb-4 text-white"
+            >
+              Cinematic Landscapes
+            </TextEffect>
+            <p className="text-lg text-gray-400 max-w-xl mx-auto">
+              Breathtaking landscape cinematography capturing the beauty of nature and urban environments with mobile Phone.
+            </p>
+          </motion.div>
+
+          <div ref={landscapeGridRef} className="mb-16">
+            <InfiniteSlider
+              gap={28}
+              speed={playingVideos.size > 0 ? 0 : 40}
+              speedOnHover={playingVideos.size > 0 ? 0 : 15}
+              className="py-4"
+            >
+              {landscapeProjects.map((project, index) => (
+                <div key={project.id} className="w-96 flex-shrink-0">
+                  <Card className="relative aspect-[16/9] bg-gray-900 border-gray-800 overflow-hidden">
+                    <CardContent className="p-0 h-full relative">
+                      {/* Video Element */}
+                      <video
+                        className="w-full h-full object-cover cursor-pointer"
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                        onEnded={() => handleVideoEnd(project.id)}
+                        onPause={() => {
+                          setPlayingVideos(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(project.id);
+                            return newSet;
+                          });
+                        }}
+                        onClick={(e) => {
+                          if (playingVideos.has(project.id)) {
+                            handlePlayClick(e.target, project.id);
+                          }
+                        }}
+                      >
+                        <source src={project.videoUrl} type="video/mp4" />
+                      </video>
+
+                      {/* Overlay - Hidden when playing */}
+                      {!playingVideos.has(project.id) && (
+                        <div className="absolute inset-0 bg-black/40" />
+                      )}
+
+                      {/* Play Button - Hidden when playing */}
+                      {!playingVideos.has(project.id) && (
+                        <button
+                          onClick={(e) => {
+                            const video = e.currentTarget.parentElement.querySelector('video');
+                            handlePlayClick(video, project.id);
+                          }}
+                          className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                        >
+                          <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors duration-200">
+                            <Play className="w-8 h-8 text-white ml-1" />
+                          </div>
+                        </button>
+                      )}
+
+                      {/* Project Info removed from landscape cards */}
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+            </InfiniteSlider>
+          </div>
+        </div>
+
         {/* Phone Work Section */}
         <div className="mb-20">
           <motion.div
@@ -327,7 +461,7 @@ export default function MyWorkSection() {
               Mobile Creations
             </TextEffect>
             <p className="text-lg text-gray-400 max-w-xl mx-auto">
-              Dynamic content creation using mobile technology for social media and creative storytelling.
+              Dynamic content creation using mobile  for social media and creative storytelling.
             </p>
           </motion.div>
 
@@ -407,7 +541,7 @@ export default function MyWorkSection() {
         </div>
 
         {/* Call to Action */}
-        <motion.div
+        {/* <motion.div
           className="text-center mt-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -423,7 +557,7 @@ export default function MyWorkSection() {
           >
             Let's Create Something Amazing
           </Button>
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   );

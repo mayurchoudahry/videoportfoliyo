@@ -175,7 +175,7 @@ export default function ContactSection() {
 
             {/* Social Links & Services */}
             <div ref={socialRef} className="space-y-8">
-              <div className="bg-gray-800 p-6 rounded-lg">
+              <div className="bg-black p-6 rounded-lg">
                 <h4 className="text-lg font-semibold mb-3">Available for:</h4>
                 <ul className="space-y-2 text-gray-300">
                   <li>• Brand Videos & Commercials</li>
