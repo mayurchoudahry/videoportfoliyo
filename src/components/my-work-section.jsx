@@ -9,7 +9,6 @@ import { TextEffect } from "@/components/ui/text-effect";
 import { Button } from '@/components/ui/button';
 import { H3 } from '@/components/ui/typography';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { InfiniteSlider } from '@/components/ui/infinite-slider';
 
 // Register GSAP plugins
 if (typeof window !== 'undefined') {
@@ -22,19 +21,22 @@ const cameraProjects = [
     id: 1,
     title: "kyar",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980665/IMG_2845_opalcb.mov",
-    category: "advertisemnt"
+    category: "advertisemnt",
+    
   },
   {
     id: 2,
     title: "martini bistro",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980662/IMG_6222_ju6qel.mov",
-    category: "food"
+    category: "food",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757014171/IMG_8465_zv15om.jpg" // Optional thumbnail
   },
   {
     id: 3,
     title: "Martini bistro ",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980654/IMG_6203_faaqio.mov",
-    category: "Food"
+    category: "Food",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757014171/IMG_8462_pivedy.jpg" // Optional thumbnail,
   },
   {
     id: 4,
@@ -42,7 +44,6 @@ const cameraProjects = [
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980682/IMG_2790_zrxajh.mov",
     category: "Cinematic shoot"
   },
-  
   {
     id: 5,
     title: "Travel Vlog",
@@ -99,8 +100,222 @@ const phoneProjects = [
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757010154/Night_of_Glitz_Glamour_Creativity_We_had_the_absolute_honor_of_being_part_of_the_stunning_S_jola64.mp4",
     category: "Event"
   },
-  
 ];
+
+// Custom Draggable Carousel Component
+const DraggableCarousel = ({ children, className = "", cardWidth = 320 }) => {
+  const containerRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+    containerRef.current.style.cursor = 'grabbing';
+    containerRef.current.style.userSelect = 'none';
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    containerRef.current.style.cursor = 'grab';
+    containerRef.current.style.userSelect = 'auto';
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  // Touch events for mobile
+  const handleTouchStart = (e) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('mouseleave', handleMouseUp);
+      return () => {
+        container.removeEventListener('mouseleave', handleMouseUp);
+      };
+    }
+  }, []);
+
+  return (
+    <div className={`relative ${className}`}>
+      <div
+        ref={containerRef}
+        className="flex overflow-x-auto scrollbar-hide gap-6 py-4 cursor-grab select-none"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          WebkitScrollbar: { display: 'none' }
+        }}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {children}
+      </div>
+      
+      {/* Gradient overlays to indicate scrollability */}
+      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
+    </div>
+  );
+};
+
+// Video Card Component
+const VideoCard = ({ project, aspectRatio = "9/16", playButtonSize = "w-16 h-16", playIconSize = "w-6 h-6", showInfo = true }) => {
+  const [playingVideos, setPlayingVideos] = useState(new Set());
+  const [thumbnailError, setThumbnailError] = useState(false);
+
+  const handlePlayClick = (videoElement, projectId) => {
+    if (videoElement.paused) {
+      // Pause all other videos first
+      const allVideos = document.querySelectorAll('video');
+      allVideos.forEach(video => {
+        if (video !== videoElement && !video.paused) {
+          video.pause();
+        }
+      });
+      
+      // Clear all playing videos from state
+      setPlayingVideos(new Set([projectId]));
+      
+      // Enable audio and play the selected video
+      videoElement.muted = false;
+      videoElement.play().catch(console.error);
+    } else {
+      videoElement.pause();
+      videoElement.muted = true;
+      setPlayingVideos(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(projectId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleVideoEnd = (projectId) => {
+    setPlayingVideos(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(projectId);
+      return newSet;
+    });
+  };
+
+  const handleThumbnailError = () => {
+    setThumbnailError(true);
+  };
+
+  return (
+    <Card className={`relative aspect-[${aspectRatio}] bg-gray-900 border-gray-800 overflow-hidden`}>
+      <CardContent className="p-0 h-full relative">
+        {/* Video Element */}
+        <video
+          className="w-full h-full object-cover cursor-pointer"
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          onEnded={() => handleVideoEnd(project.id)}
+          onPause={() => {
+            setPlayingVideos(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(project.id);
+              return newSet;
+            });
+          }}
+          onClick={(e) => {
+            if (playingVideos.has(project.id)) {
+              handlePlayClick(e.target, project.id);
+            }
+          }}
+          style={{ display: playingVideos.has(project.id) ? 'block' : 'none' }}
+        >
+          <source src={project.videoUrl} type="video/mp4" />
+        </video>
+
+        {/* Thumbnail Image - Only shown when not playing and thumbnail exists */}
+        {!playingVideos.has(project.id) && project.thumbnail && !thumbnailError && (
+          <img
+            src={project.thumbnail}
+            alt={project.title}
+            className="w-full h-full object-cover"
+            onError={handleThumbnailError}
+          />
+        )}
+
+        {/* Video Preview - Shown when no thumbnail or thumbnail failed to load */}
+        {!playingVideos.has(project.id) && (!project.thumbnail || thumbnailError) && (
+          <video
+            className="w-full h-full object-cover"
+            muted
+            playsInline
+            preload="metadata"
+          >
+            <source src={project.videoUrl} type="video/mp4" />
+          </video>
+        )}
+
+        {/* Overlay - Hidden when playing */}
+        {!playingVideos.has(project.id) && (
+          <div className="absolute inset-0 bg-black/40" />
+        )}
+
+        {/* Play Button - Hidden when playing */}
+        {!playingVideos.has(project.id) && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const video = e.currentTarget.parentElement.querySelector('video');
+              handlePlayClick(video, project.id);
+            }}
+            className="absolute inset-0 flex items-center justify-center cursor-pointer"
+          >
+            <div className={`${playButtonSize} bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors duration-200`}>
+              <Play className={`${playIconSize} text-white ml-1`} />
+            </div>
+          </button>
+        )}
+
+        {/* Project Info - Hidden when playing and only shown if showInfo is true */}
+        {!playingVideos.has(project.id) && showInfo && (
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <Card className="bg-black/80 backdrop-blur-sm border-gray-700">
+              <CardHeader className="p-4">
+                <CardTitle className="text-base font-semibold text-white">{project.title}</CardTitle>
+                <CardDescription className="text-sm text-gray-300">{project.category}</CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function MyWorkSection() {
   const sectionRef = useRef(null);
@@ -108,7 +323,6 @@ export default function MyWorkSection() {
   const cameraGridRef = useRef(null);
   const landscapeGridRef = useRef(null);
   const phoneGridRef = useRef(null);
-  const [playingVideos, setPlayingVideos] = useState(new Set());
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -214,41 +428,6 @@ export default function MyWorkSection() {
     return () => ctx.revert();
   }, []);
 
-  const handlePlayClick = (videoElement, projectId) => {
-    if (videoElement.paused) {
-      // Pause all other videos first
-      const allVideos = document.querySelectorAll('video');
-      allVideos.forEach(video => {
-        if (video !== videoElement && !video.paused) {
-          video.pause();
-        }
-      });
-      
-      // Clear all playing videos from state
-      setPlayingVideos(new Set([projectId]));
-      
-      // Enable audio and play the selected video
-      videoElement.muted = false;
-      videoElement.play().catch(console.error);
-    } else {
-      videoElement.pause();
-      videoElement.muted = true;
-      setPlayingVideos(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(projectId);
-        return newSet;
-      });
-    }
-  };
-
-  const handleVideoEnd = (projectId) => {
-    setPlayingVideos(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(projectId);
-      return newSet;
-    });
-  };
-
   const scrollToContact = () => {
     const contactSection = document.querySelector('#contact');
     if (contactSection) {
@@ -286,76 +465,19 @@ export default function MyWorkSection() {
           </motion.div>
 
           <div ref={cameraGridRef} className="mb-16">
-            <InfiniteSlider
-              gap={24}
-              speed={playingVideos.size > 0 ? 0 : 50}
-              speedOnHover={playingVideos.size > 0 ? 0 : 20}
-              className="py-4"
-            >
-              {cameraProjects.map((project, index) => (
+            <DraggableCarousel className="py-4" cardWidth={320}>
+              {cameraProjects.map((project) => (
                 <div key={project.id} className="w-80 flex-shrink-0">
-                  <Card className="relative aspect-[9/16] bg-gray-900 border-gray-800 overflow-hidden">
-                    <CardContent className="p-0 h-full relative">
-                      {/* Video Element */}
-                      <video
-                        className="w-full h-full object-cover cursor-pointer"
-                        muted
-                        loop
-                        playsInline
-                        preload="metadata"
-                        onEnded={() => handleVideoEnd(project.id)}
-                        onPause={() => {
-                          setPlayingVideos(prev => {
-                            const newSet = new Set(prev);
-                            newSet.delete(project.id);
-                            return newSet;
-                          });
-                        }}
-                        onClick={(e) => {
-                          if (playingVideos.has(project.id)) {
-                            handlePlayClick(e.target, project.id);
-                          }
-                        }}
-                      >
-                        <source src={project.videoUrl} type="video/mp4" />
-                      </video>
-
-                      {/* Overlay - Hidden when playing */}
-                      {!playingVideos.has(project.id) && (
-                        <div className="absolute inset-0 bg-black/40" />
-                      )}
-
-                      {/* Play Button - Hidden when playing */}
-                      {!playingVideos.has(project.id) && (
-                        <button
-                          onClick={(e) => {
-                            const video = e.currentTarget.parentElement.querySelector('video');
-                            handlePlayClick(video, project.id);
-                          }}
-                          className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                        >
-                          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors duration-200">
-                            <Play className="w-6 h-6 text-white ml-1" />
-                          </div>
-                        </button>
-                      )}
-
-                      {/* Project Info - Hidden when playing */}
-                      {!playingVideos.has(project.id) && (
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <Card className="bg-black/80 backdrop-blur-sm border-gray-700">
-                            <CardHeader className="p-4">
-                              <CardTitle className="text-base font-semibold text-white">{project.title}</CardTitle>
-                              <CardDescription className="text-sm text-gray-300">{project.category}</CardDescription>
-                            </CardHeader>
-                          </Card>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <VideoCard 
+                    project={project} 
+                    aspectRatio="9/16" 
+                    playButtonSize="w-16 h-16" 
+                    playIconSize="w-6 h-6"
+                    showInfo={true}
+                  />
                 </div>
               ))}
-            </InfiniteSlider>
+            </DraggableCarousel>
           </div>
         </div>
 
@@ -381,66 +503,19 @@ export default function MyWorkSection() {
           </motion.div>
 
           <div ref={landscapeGridRef} className="mb-16">
-            <InfiniteSlider
-              gap={28}
-              speed={playingVideos.size > 0 ? 0 : 40}
-              speedOnHover={playingVideos.size > 0 ? 0 : 15}
-              className="py-4"
-            >
-              {landscapeProjects.map((project, index) => (
+            <DraggableCarousel className="py-4" cardWidth={384}>
+              {landscapeProjects.map((project) => (
                 <div key={project.id} className="w-96 flex-shrink-0">
-                  <Card className="relative aspect-[16/9] bg-gray-900 border-gray-800 overflow-hidden">
-                    <CardContent className="p-0 h-full relative">
-                      {/* Video Element */}
-                      <video
-                        className="w-full h-full object-cover cursor-pointer"
-                        muted
-                        loop
-                        playsInline
-                        preload="metadata"
-                        onEnded={() => handleVideoEnd(project.id)}
-                        onPause={() => {
-                          setPlayingVideos(prev => {
-                            const newSet = new Set(prev);
-                            newSet.delete(project.id);
-                            return newSet;
-                          });
-                        }}
-                        onClick={(e) => {
-                          if (playingVideos.has(project.id)) {
-                            handlePlayClick(e.target, project.id);
-                          }
-                        }}
-                      >
-                        <source src={project.videoUrl} type="video/mp4" />
-                      </video>
-
-                      {/* Overlay - Hidden when playing */}
-                      {!playingVideos.has(project.id) && (
-                        <div className="absolute inset-0 bg-black/40" />
-                      )}
-
-                      {/* Play Button - Hidden when playing */}
-                      {!playingVideos.has(project.id) && (
-                        <button
-                          onClick={(e) => {
-                            const video = e.currentTarget.parentElement.querySelector('video');
-                            handlePlayClick(video, project.id);
-                          }}
-                          className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                        >
-                          <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors duration-200">
-                            <Play className="w-8 h-8 text-white ml-1" />
-                          </div>
-                        </button>
-                      )}
-
-                      {/* Project Info removed from landscape cards */}
-                    </CardContent>
-                  </Card>
+                  <VideoCard 
+                    project={project} 
+                    aspectRatio="16/9" 
+                    playButtonSize="w-20 h-20" 
+                    playIconSize="w-8 h-8"
+                    showInfo={false}
+                  />
                 </div>
               ))}
-            </InfiniteSlider>
+            </DraggableCarousel>
           </div>
         </div>
 
@@ -461,103 +536,26 @@ export default function MyWorkSection() {
               Mobile Creations
             </TextEffect>
             <p className="text-lg text-gray-400 max-w-xl mx-auto">
-              Dynamic content creation using mobile  for social media and creative storytelling.
+              Dynamic content creation using mobile for social media and creative storytelling.
             </p>
           </motion.div>
 
           <div ref={phoneGridRef}>
-            <InfiniteSlider
-              gap={20}
-              speed={playingVideos.size > 0 ? 0 : 60}
-              speedOnHover={playingVideos.size > 0 ? 0 : 25}
-              reverse={true}
-              className="py-4"
-            >
-              {phoneProjects.map((project, index) => (
+            <DraggableCarousel className="py-4" cardWidth={256}>
+              {phoneProjects.map((project) => (
                 <div key={project.id} className="w-64 flex-shrink-0">
-                   <Card className="relative aspect-[9/16] bg-gray-900 border-gray-800 overflow-hidden">
-                    <CardContent className="p-0 h-full relative">
-                      {/* Video Element */}
-                      <video
-                        className="w-full h-full object-cover cursor-pointer"
-                        muted
-                        loop
-                        playsInline
-                        preload="metadata"
-                        onEnded={() => handleVideoEnd(project.id)}
-                        onPause={() => {
-                          setPlayingVideos(prev => {
-                            const newSet = new Set(prev);
-                            newSet.delete(project.id);
-                            return newSet;
-                          });
-                        }}
-                        onClick={(e) => {
-                          if (playingVideos.has(project.id)) {
-                            handlePlayClick(e.target, project.id);
-                          }
-                        }}
-                      >
-                        <source src={project.videoUrl} type="video/mp4" />
-                      </video>
-
-                      {/* Overlay - Hidden when playing */}
-                      {!playingVideos.has(project.id) && (
-                        <div className="absolute inset-0 bg-black/40" />
-                      )}
-
-                      {/* Play Button - Hidden when playing */}
-                      {!playingVideos.has(project.id) && (
-                        <button
-                          onClick={(e) => {
-                            const video = e.currentTarget.parentElement.querySelector('video');
-                            handlePlayClick(video, project.id);
-                          }}
-                          className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                        >
-                          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors duration-200">
-                            <Play className="w-6 h-6 text-white ml-1" />
-                          </div>
-                        </button>
-                      )}
-
-                      {/* Project Info - Hidden when playing */}
-                      {!playingVideos.has(project.id) && (
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <Card className="bg-black/80 backdrop-blur-sm border-gray-700">
-                            <CardHeader className="p-4">
-                              <CardTitle className="text-base font-semibold text-white">{project.title}</CardTitle>
-                              <CardDescription className="text-sm text-gray-300">{project.category}</CardDescription>
-                            </CardHeader>
-                          </Card>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                  <VideoCard 
+                    project={project} 
+                    aspectRatio="9/16" 
+                    playButtonSize="w-16 h-16" 
+                    playIconSize="w-6 h-6"
+                    showInfo={true}
+                  />
                 </div>
               ))}
-            </InfiniteSlider>
+            </DraggableCarousel>
           </div>
         </div>
-
-        {/* Call to Action */}
-        {/* <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          viewport={{ once: true }}
-        >
-          <p className="text-lg text-gray-400 mb-6">
-            Interested in working together?
-          </p>
-          <Button
-            onClick={scrollToContact}
-            className="px-8 py-3 bg-white text-black rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium"
-          >
-            Let's Create Something Amazing
-          </Button>
-        </motion.div> */}
       </div>
     </section>
   );
