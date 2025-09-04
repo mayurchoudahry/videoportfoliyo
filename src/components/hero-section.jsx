@@ -94,7 +94,7 @@ export default function HeroSection() {
       </div>
 
       {/* Scroll Indicator */}
-      <motion.div
+      {/* <motion.div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -112,7 +112,7 @@ export default function HeroSection() {
           />
         </motion.div>
         <p className="text-sm mt-2 font-light">Scroll</p>
-      </motion.div>
+      </motion.div> */}
     </section>
   );
 }

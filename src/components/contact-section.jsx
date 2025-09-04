@@ -106,7 +106,7 @@ export default function ContactSection() {
   ];
 
   return (
-    <section id="contact" ref={sectionRef} className="py-20 px-4 bg-black text-white min-h-screen">
+    <section id="contact" ref={sectionRef} className="py-20 pb-60 px-4 bg-black text-white">
       <div className="max-w-6xl mx-auto">
         {/* Section Title */}
         <motion.div
@@ -147,7 +147,7 @@ export default function ContactSection() {
             </div>
 
             <div>
-              <h4 className="text-xl font-semibold mb-4">Follow My Work</h4>
+              <h4 className="text-xl font-semibold mb-4">Socials</h4>
               <div className="flex gap-4">
                 {socialLinks.map((social, index) => {
                   const IconComponent = social.icon;
@@ -175,31 +175,6 @@ export default function ContactSection() {
 
             {/* Social Links & Services */}
             <div ref={socialRef} className="space-y-8">
-              <div>
-                <h4 className="text-xl font-semibold mb-4">Follow My Work</h4>
-                <div className="flex gap-4">
-                  {socialLinks.map((social, index) => {
-                    const IconComponent = social.icon;
-                    return (
-                      <motion.a
-                        key={social.name}
-                        href={social.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 transition-colors duration-300 ${social.color}`}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <IconComponent className="w-5 h-5" />
-                      </motion.a>
-                    );
-                  })}
-                </div>
-              </div>
-
               <div className="bg-gray-800 p-6 rounded-lg">
                 <h4 className="text-lg font-semibold mb-3">Available for:</h4>
                 <ul className="space-y-2 text-gray-300">

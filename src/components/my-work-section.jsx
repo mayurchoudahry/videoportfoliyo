@@ -214,23 +214,6 @@ export default function MyWorkSection() {
   return (
     <section id="my-work" ref={sectionRef} className="py-20 px-4 bg-black text-white min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Section Title */}
-        {/* <motion.div
-          ref={titleRef}
-          className="text-center mb-16"
-          initial={{ opacity: 0 }}
-        >
-          <TextEffect 
-            per="char" 
-            preset="fade" 
-            className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4"
-          >
-            My Work
-          </TextEffect>
-          <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
-            A collection of creative videos showcasing storytelling, cinematography, and visual excellence.
-          </p>
-        </motion.div> */}
 
         {/* Camera Work Section */}
         <div className="mb-20">
@@ -256,13 +239,13 @@ export default function MyWorkSection() {
           <div ref={cameraGridRef} className="mb-16">
             <InfiniteSlider
               gap={24}
-              speed={50}
-              speedOnHover={20}
+              speed={playingVideos.size > 0 ? 0 : 50}
+              speedOnHover={playingVideos.size > 0 ? 0 : 20}
               className="py-4"
             >
               {cameraProjects.map((project, index) => (
                 <div key={project.id} className="w-80 flex-shrink-0">
-                  <Card className="relative aspect-[3/4] bg-gray-900 border-gray-800 overflow-hidden">
+                  <Card className="relative aspect-[9/16] bg-gray-900 border-gray-800 overflow-hidden">
                     <CardContent className="p-0 h-full relative">
                       {/* Video Element */}
                       <video
@@ -351,14 +334,14 @@ export default function MyWorkSection() {
           <div ref={phoneGridRef}>
             <InfiniteSlider
               gap={20}
-              speed={60}
-              speedOnHover={25}
+              speed={playingVideos.size > 0 ? 0 : 60}
+              speedOnHover={playingVideos.size > 0 ? 0 : 25}
               reverse={true}
               className="py-4"
             >
               {phoneProjects.map((project, index) => (
                 <div key={project.id} className="w-64 flex-shrink-0">
-                  <Card className="relative aspect-[3/4] bg-gray-900 border-gray-800 overflow-hidden">
+                   <Card className="relative aspect-[9/16] bg-gray-900 border-gray-800 overflow-hidden">
                     <CardContent className="p-0 h-full relative">
                       {/* Video Element */}
                       <video

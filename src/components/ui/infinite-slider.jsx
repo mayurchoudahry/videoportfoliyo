@@ -10,9 +10,10 @@ export function InfiniteSlider({
   speedOnHover,
   direction = 'horizontal',
   reverse = false,
-  className
+  className,
+  paused = false
 }) {
-  const [currentSpeed, setCurrentSpeed] = useState(speed);
+  const [currentSpeed, setCurrentSpeed] = useState(paused ? 0 : speed);
   const ref = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const translation = useMotionValue(0);
@@ -33,6 +34,17 @@ export function InfiniteSlider({
     return () => window.removeEventListener('resize', measureElement);
   }, [children]);
 
+  // Update speed when paused prop changes
+  useEffect(() => {
+    if (paused) {
+      setIsTransitioning(true);
+      setCurrentSpeed(0);
+    } else {
+      setIsTransitioning(true);
+      setCurrentSpeed(speed);
+    }
+  }, [paused, speed]);
+
   useEffect(() => {
     let controls;
     const { width, height } = dimensions;
@@ -42,7 +54,12 @@ export function InfiniteSlider({
     const to = reverse ? 0 : -contentSize / 2;
 
     const distanceToTravel = Math.abs(to - from);
-    const duration = distanceToTravel / currentSpeed;
+    const duration = currentSpeed > 0 ? distanceToTravel / currentSpeed : 0;
+
+    if (currentSpeed === 0) {
+      // When paused, stop all animations
+      return;
+    }
 
     if (isTransitioning) {
       const remainingDistance = Math.abs(translation.get() - to);

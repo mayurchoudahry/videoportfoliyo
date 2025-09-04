@@ -1,18 +1,20 @@
-
-import { Header } from "@/components/header";
 import HeroSection from "@/components/hero-section";
 import MyWorkSection from "@/components/my-work-section";
 import ContactSection from "@/components/contact-section";
-import FloatingButtons from "@/components/floating-buttons";
-
 export default function Home() {
   return (
    <>
-   <Header/>
-   <HeroSection/>
+   <div id="Home" className="overflow-hidden">
+  <HeroSection/>
+   </div>
+   
+   <div id="Work" className="overflow-hidden">
    <MyWorkSection/>
+   </div>
+   
+   <div id="Contact" className="overflow-hidden">
    <ContactSection/>
-   <FloatingButtons/>
+   </div>
    </>
   );
 }
