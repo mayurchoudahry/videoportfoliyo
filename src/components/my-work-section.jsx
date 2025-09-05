@@ -103,29 +103,38 @@ const phoneProjects = [
 ];
 
 // Navigation Carousel Component
-const NavigationCarousel = ({ children, className = "", cardWidth = 320 }) => {
+const NavigationCarousel = ({ children, className = "" }) => {
   const containerRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [maxIndex, setMaxIndex] = useState(0);
+  const [cardWidth, setCardWidth] = useState(0);
 
   useEffect(() => {
     if (containerRef.current) {
-      const container = containerRef.current;
-      const containerWidth = container.offsetWidth;
-      const totalWidth = container.scrollWidth;
-      const visibleCards = Math.floor(containerWidth / cardWidth);
       const totalCards = children.length;
-      setMaxIndex(Math.max(0, totalCards - visibleCards));
+      setMaxIndex(Math.max(0, totalCards - 1));
+
+      // detect actual card width (first child)
+      const firstCard = containerRef.current.querySelector(":scope > *");
+      if (firstCard) {
+        setCardWidth(firstCard.offsetWidth + 24); // +gap-6 (24px) spacing
+      }
     }
-  }, [children.length, cardWidth]);
+  }, [children.length]);
 
   const scrollTo = (index) => {
-    if (containerRef.current) {
-      const scrollPosition = index * cardWidth;
-      containerRef.current.scrollTo({
+    if (containerRef.current && cardWidth) {
+      const container = containerRef.current;
+      const containerWidth = container.offsetWidth;
+
+      const scrollPosition =
+        index * cardWidth - (containerWidth / 2 - cardWidth / 2);
+
+      container.scrollTo({
         left: scrollPosition,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
+
       setCurrentIndex(index);
     }
   };
@@ -145,49 +154,50 @@ const NavigationCarousel = ({ children, className = "", cardWidth = 320 }) => {
 
   return (
     <div className={`relative ${className}`}>
-      {/* Left Navigation Button */}
+      {/* Left Navigation */}
       <button
         onClick={handlePrevious}
         disabled={!canGoPrevious}
         className={`absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/30 ${
-          !canGoPrevious ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
+          !canGoPrevious ? "opacity-50 cursor-not-allowed" : "hover:scale-110"
         }`}
       >
         <ChevronLeft className="w-6 h-6 text-white" />
       </button>
 
-      {/* Right Navigation Button */}
+      {/* Right Navigation */}
       <button
         onClick={handleNext}
         disabled={!canGoNext}
         className={`absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/30 ${
-          !canGoNext ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
+          !canGoNext ? "opacity-50 cursor-not-allowed" : "hover:scale-110"
         }`}
       >
         <ChevronRight className="w-6 h-6 text-white" />
       </button>
 
-      {/* Carousel Container */}
+      {/* Carousel */}
       <div
         ref={containerRef}
         className="flex overflow-x-hidden gap-6 py-4"
         style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          WebkitScrollbar: { display: 'none' }
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
         }}
       >
         {children}
       </div>
-      
-      {/* Progress Indicators */}
+
+      {/* Dots */}
       <div className="flex justify-center mt-4 space-x-2">
         {Array.from({ length: maxIndex + 1 }, (_, index) => (
           <button
             key={index}
             onClick={() => scrollTo(index)}
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex ? 'bg-white' : 'bg-white/40 hover:bg-white/60'
+              index === currentIndex
+                ? "bg-white"
+                : "bg-white/40 hover:bg-white/60"
             }`}
           />
         ))}
@@ -195,6 +205,7 @@ const NavigationCarousel = ({ children, className = "", cardWidth = 320 }) => {
     </div>
   );
 };
+
 
 // Video Card Component
 const VideoCard = ({ project, aspectRatio = "9/16", playButtonSize = "w-16 h-16", playIconSize = "w-6 h-6", showInfo = true }) => {
