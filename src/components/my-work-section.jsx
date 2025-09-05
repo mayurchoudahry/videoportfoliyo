@@ -112,23 +112,56 @@ const NavigationCarousel = ({ children, className = "" }) => {
   useEffect(() => {
     if (containerRef.current) {
       const totalCards = children.length;
-      setMaxIndex(Math.max(0, totalCards - 1));
+      const isMobile = window.innerWidth < 640;
+      
+      if (isMobile) {
+        setMaxIndex(Math.max(0, totalCards - 1));
+      } else {
+        const visibleCards = Math.floor(containerRef.current.offsetWidth / 320);
+        setMaxIndex(Math.max(0, totalCards - visibleCards));
+      }
 
       // detect actual card width (first child)
       const firstCard = containerRef.current.querySelector(":scope > *");
       if (firstCard) {
-        setCardWidth(firstCard.offsetWidth + 24); // +gap-6 (24px) spacing
+        const gap = window.innerWidth < 640 ? 0 : 24; // no gap on mobile
+        setCardWidth(firstCard.offsetWidth + gap);
       }
     }
+
+    const handleResize = () => {
+      if (containerRef.current) {
+        const totalCards = children.length;
+        const isMobile = window.innerWidth < 640;
+        
+        if (isMobile) {
+          setMaxIndex(Math.max(0, totalCards - 1));
+        } else {
+          const visibleCards = Math.floor(containerRef.current.offsetWidth / 320);
+          setMaxIndex(Math.max(0, totalCards - visibleCards));
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [children.length]);
 
   const scrollTo = (index) => {
-    if (containerRef.current && cardWidth) {
+    if (containerRef.current) {
       const container = containerRef.current;
       const containerWidth = container.offsetWidth;
-
-      const scrollPosition =
-        index * cardWidth - (containerWidth / 2 - cardWidth / 2);
+      const isMobile = window.innerWidth < 640; // sm breakpoint
+      
+      let scrollPosition;
+      if (isMobile) {
+        // On mobile, scroll to show one video at a time
+        scrollPosition = index * containerWidth;
+      } else {
+        // On desktop, use card width for proper spacing
+        const effectiveCardWidth = cardWidth || 300;
+        scrollPosition = index * effectiveCardWidth - (containerWidth / 2 - effectiveCardWidth / 2);
+      }
 
       container.scrollTo({
         left: scrollPosition,
@@ -158,28 +191,28 @@ const NavigationCarousel = ({ children, className = "" }) => {
       <button
         onClick={handlePrevious}
         disabled={!canGoPrevious}
-        className={`absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/30 ${
+        className={`absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/30 ${
           !canGoPrevious ? "opacity-50 cursor-not-allowed" : "hover:scale-110"
         }`}
       >
-        <ChevronLeft className="w-6 h-6 text-white" />
+        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
       </button>
 
       {/* Right Navigation */}
       <button
         onClick={handleNext}
         disabled={!canGoNext}
-        className={`absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/30 ${
+        className={`absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:bg-white/30 ${
           !canGoNext ? "opacity-50 cursor-not-allowed" : "hover:scale-110"
         }`}
       >
-        <ChevronRight className="w-6 h-6 text-white" />
+        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
       </button>
 
       {/* Carousel */}
       <div
         ref={containerRef}
-        className="flex overflow-x-hidden gap-6 py-4"
+        className="flex overflow-x-hidden gap-0 sm:gap-6 py-4"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -211,6 +244,10 @@ const NavigationCarousel = ({ children, className = "" }) => {
 const VideoCard = ({ project, aspectRatio = "9/16", playButtonSize = "w-16 h-16", playIconSize = "w-6 h-6", showInfo = true }) => {
   const [playingVideos, setPlayingVideos] = useState(new Set());
   const [thumbnailError, setThumbnailError] = useState(false);
+  const [videoThumbnail, setVideoThumbnail] = useState(null);
+  const [isIOS, setIsIOS] = useState(false);
+  const previewVideoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const handlePlayClick = (videoElement, projectId) => {
     if (videoElement.paused) {
@@ -251,6 +288,45 @@ const VideoCard = ({ project, aspectRatio = "9/16", playButtonSize = "w-16 h-16"
     setThumbnailError(true);
   };
 
+  // Detect iOS device
+  useEffect(() => {
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    setIsIOS(iOS);
+  }, []);
+
+  // Generate thumbnail from video for iOS
+  const generateVideoThumbnail = (videoElement) => {
+    if (!videoElement || !isIOS || project.thumbnail) return;
+    
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = videoElement.videoWidth || 320;
+      canvas.height = videoElement.videoHeight || 568;
+      
+      ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+      const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
+      setVideoThumbnail(thumbnailUrl);
+    } catch (error) {
+      console.warn('Could not generate video thumbnail:', error);
+    }
+  };
+
+  // Handle video metadata loaded for iOS thumbnail generation
+  const handleVideoLoadedData = (videoElement) => {
+    if (isIOS && !project.thumbnail && videoElement) {
+      videoElement.currentTime = 1; // Seek to 1 second for better frame
+    }
+  };
+
+  const handleVideoSeeked = (videoElement) => {
+    if (isIOS && !project.thumbnail && videoElement && videoElement.readyState >= 2) {
+      generateVideoThumbnail(videoElement);
+    }
+  };
+
   return (
     <Card className={`relative aspect-[${aspectRatio}] bg-gray-900 border-gray-800 overflow-hidden`}>
       <CardContent className="p-0 h-full relative">
@@ -261,6 +337,7 @@ const VideoCard = ({ project, aspectRatio = "9/16", playButtonSize = "w-16 h-16"
           loop
           playsInline
           preload="metadata"
+          crossOrigin="anonymous"
           onEnded={() => handleVideoEnd(project.id)}
           onPause={() => {
             setPlayingVideos(prev => {
@@ -277,6 +354,8 @@ const VideoCard = ({ project, aspectRatio = "9/16", playButtonSize = "w-16 h-16"
           style={{ display: playingVideos.has(project.id) ? 'block' : 'none' }}
         >
           <source src={project.videoUrl} type="video/mp4" />
+          <source src={project.videoUrl} type="video/mov" />
+          <source src={project.videoUrl} type="video/quicktime" />
         </video>
 
         {/* Thumbnail Image - Only shown when not playing and thumbnail exists */}
@@ -289,15 +368,30 @@ const VideoCard = ({ project, aspectRatio = "9/16", playButtonSize = "w-16 h-16"
           />
         )}
 
+        {/* Generated Video Thumbnail for iOS */}
+        {!playingVideos.has(project.id) && isIOS && !project.thumbnail && videoThumbnail && (
+          <img
+            src={videoThumbnail}
+            alt={project.title}
+            className="w-full h-full object-cover"
+          />
+        )}
+
         {/* Video Preview - Shown when no thumbnail or thumbnail failed to load */}
-        {!playingVideos.has(project.id) && (!project.thumbnail || thumbnailError) && (
+        {!playingVideos.has(project.id) && (!project.thumbnail || thumbnailError) && !(isIOS && videoThumbnail) && (
           <video
+            ref={previewVideoRef}
             className="w-full h-full object-cover"
             muted
             playsInline
             preload="metadata"
+            onLoadedData={(e) => handleVideoLoadedData(e.target)}
+            onSeeked={(e) => handleVideoSeeked(e.target)}
+            crossOrigin="anonymous"
           >
             <source src={project.videoUrl} type="video/mp4" />
+            <source src={project.videoUrl} type="video/mov" />
+            <source src={project.videoUrl} type="video/quicktime" />
           </video>
         )}
 
@@ -486,9 +580,9 @@ export default function MyWorkSection() {
           </motion.div>
 
           <div ref={cameraGridRef} className="mb-16">
-            <NavigationCarousel className="py-4" cardWidth={320}>
+            <NavigationCarousel className="py-4">
               {cameraProjects.map((project) => (
-                <div key={project.id} className="w-80 flex-shrink-0">
+                <div key={project.id} className="w-full sm:w-80 flex-shrink-0 px-4 sm:px-0">
                   <VideoCard 
                     project={project} 
                     aspectRatio="9/16" 
@@ -524,9 +618,9 @@ export default function MyWorkSection() {
           </motion.div>
 
           <div ref={landscapeGridRef} className="mb-16">
-            <NavigationCarousel className="py-4" cardWidth={384}>
+            <NavigationCarousel className="py-4">
               {landscapeProjects.map((project) => (
-                <div key={project.id} className="w-96 flex-shrink-0">
+                <div key={project.id} className="w-full sm:w-96 flex-shrink-0 px-4 sm:px-0">
                   <VideoCard 
                     project={project} 
                     aspectRatio="16/9" 
@@ -562,9 +656,9 @@ export default function MyWorkSection() {
           </motion.div>
 
           <div ref={phoneGridRef}>
-            <NavigationCarousel className="py-4" cardWidth={256}>
+            <NavigationCarousel className="py-4">
               {phoneProjects.map((project) => (
-                <div key={project.id} className="w-64 flex-shrink-0">
+                <div key={project.id} className="w-full sm:w-64 flex-shrink-0 px-4 sm:px-0">
                   <VideoCard 
                     project={project} 
                     aspectRatio="9/16" 
