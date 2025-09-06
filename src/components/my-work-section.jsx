@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Play, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -9,6 +9,7 @@ import { TextEffect } from "@/components/ui/text-effect";
 import { Button } from '@/components/ui/button';
 import { H3 } from '@/components/ui/typography';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { CarouselSpacing } from './card';
 
 // Register GSAP plugins
 if (typeof window !== 'undefined') {
@@ -22,6 +23,7 @@ const cameraProjects = [
     title: "kyar",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980665/IMG_2845_opalcb.mov",
     category: "advertisemnt",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757139697/IMG_8484_jrquwt.jpg" // Optional thumbnail
     
   },
   {
@@ -29,26 +31,28 @@ const cameraProjects = [
     title: "martini bistro",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980662/IMG_6222_ju6qel.mov",
     category: "food",
-    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757014171/IMG_8465_zv15om.jpg" // Optional thumbnail
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757014171/IMG_8465_zv15om.jpg" 
   },
   {
     id: 3,
     title: "Martini bistro ",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980654/IMG_6203_faaqio.mov",
     category: "Food",
-    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757014171/IMG_8462_pivedy.jpg" // Optional thumbnail,
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757014171/IMG_8462_pivedy.jpg" 
   },
   {
     id: 4,
     title: "Kyra",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980682/IMG_2790_zrxajh.mov",
-    category: "Cinematic shoot"
+    category: "Cinematic shoot",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757139698/IMG_8485_iyawra.jpg" 
   },
   {
     id: 5,
     title: "Martini Biestro",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756980637/IMG_9967_zjqmnv.mov",
-    category: "Food"
+    category: "Food",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757139695/IMG_8483_vdesib.jpg" 
   }
 ];
 
@@ -58,25 +62,29 @@ const landscapeProjects = [
     id: 10,
     title: "Cinematic Landscape",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756981631/IMG_8452_hq8qpv.mov",
-    category: ""
+    category: "cinematic",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757139694/IMG_8488_nilpsh.jpg" 
   },
   {
     id: 11,
     title: "Urban Exploration",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756981616/IMG_8450_n3dddy.mov",
-    category: "City Timelapses"
+    category: "City Timelapses",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757140229/IMG_8490_nmzxtk.jpg"  
   },
   {
     id: 12,
     title: "Golden Hour",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1756981624/IMG_8451_il5gpt.mov",
-    category: "Cinematic"
+    category: "Cinematic",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757139694/IMG_8487_k2iy6t.jpg" 
   },
   {
     id: 13,
     title: "Coastal Scenes",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757011361/IMG_8461_nqfdif.mov",
-    category: "Landscape"
+    category: "Landscape", 
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757139694/IMG_8489_ej2sat.jpg" 
   }
 ];
 
@@ -86,19 +94,22 @@ const phoneProjects = [
     id: 6,
     title: "Bartender Brothers",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757010152/What_a_baraat_to_remember_at_the_grand_Indian_wedding_in_Bopal_Dhols_beating_colors_flying_an_dyflff.mp4",
-    category: "Event"
+    category: "Event",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757144405/IMG_8496_zl24yh.jpg" 
   },
   {
     id: 7,
     title: "Bartender Brothers",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757010154/Night_of_Glitz_Glamour_Creativity_We_had_the_absolute_honor_of_being_part_of_the_stunning_S_1_raeaun.mp4",
-    category: "Event"
+    category: "Event",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757144405/IMG_8498_gxpovt.jpg" 
   },
   {
     id: 8,
     title: "Bartender Brothers ",
     videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757010154/Night_of_Glitz_Glamour_Creativity_We_had_the_absolute_honor_of_being_part_of_the_stunning_S_jola64.mp4",
-    category: "Event"
+    category: "Event",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757144404/IMG_8495_u5zs9x.jpg" 
   },
 ];
 
@@ -108,59 +119,61 @@ const NavigationCarousel = ({ children, className = "" }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [maxIndex, setMaxIndex] = useState(0);
   const [cardWidth, setCardWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
 
-  useEffect(() => {
+  const updateCarouselDimensions = useCallback(() => {
     if (containerRef.current) {
+      const container = containerRef.current;
       const totalCards = children.length;
       const isMobile = window.innerWidth < 640;
+      const currentContainerWidth = container.offsetWidth;
       
-      if (isMobile) {
-        setMaxIndex(Math.max(0, totalCards - 1));
-      } else {
-        const visibleCards = Math.floor(containerRef.current.offsetWidth / 320);
-        setMaxIndex(Math.max(0, totalCards - visibleCards));
-      }
-
-      // detect actual card width (first child)
-      const firstCard = containerRef.current.querySelector(":scope > *");
+      setContainerWidth(currentContainerWidth);
+      
+      // Get actual card width from first child
+      const firstCard = container.querySelector(":scope > *");
       if (firstCard) {
-        const gap = window.innerWidth < 640 ? 0 : 24; // no gap on mobile
-        setCardWidth(firstCard.offsetWidth + gap);
-      }
-    }
-
-    const handleResize = () => {
-      if (containerRef.current) {
-        const totalCards = children.length;
-        const isMobile = window.innerWidth < 640;
+        const actualCardWidth = firstCard.offsetWidth;
+        const gap = isMobile ? 0 : 24;
+        setCardWidth(actualCardWidth + gap);
         
         if (isMobile) {
+          // On mobile, show one card at a time
           setMaxIndex(Math.max(0, totalCards - 1));
         } else {
-          const visibleCards = Math.floor(containerRef.current.offsetWidth / 320);
-          setMaxIndex(Math.max(0, totalCards - visibleCards));
+          // On desktop, calculate how many cards fit and set maxIndex accordingly
+          const cardsPerView = Math.floor(currentContainerWidth / (actualCardWidth + gap));
+          setMaxIndex(Math.max(0, totalCards - cardsPerView));
         }
       }
+    }
+  }, [children.length]);
+
+  useEffect(() => {
+    updateCarouselDimensions();
+    
+    const handleResize = () => {
+      updateCarouselDimensions();
+      // Reset to first item on resize to avoid being stuck
+      setCurrentIndex(0);
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [children.length]);
+  }, [updateCarouselDimensions]);
 
   const scrollTo = (index) => {
-    if (containerRef.current) {
+    if (containerRef.current && cardWidth > 0) {
       const container = containerRef.current;
-      const containerWidth = container.offsetWidth;
-      const isMobile = window.innerWidth < 640; // sm breakpoint
+      const isMobile = window.innerWidth < 640;
       
       let scrollPosition;
       if (isMobile) {
-        // On mobile, scroll to show one video at a time
+        // On mobile, scroll full container width per item
         scrollPosition = index * containerWidth;
       } else {
-        // On desktop, use card width for proper spacing
-        const effectiveCardWidth = cardWidth || 300;
-        scrollPosition = index * effectiveCardWidth - (containerWidth / 2 - effectiveCardWidth / 2);
+        // On desktop, scroll by card width to show next set of cards
+        scrollPosition = index * cardWidth;
       }
 
       container.scrollTo({
@@ -221,20 +234,22 @@ const NavigationCarousel = ({ children, className = "" }) => {
         {children}
       </div>
 
-      {/* Dots */}
-      <div className="flex justify-center mt-4 space-x-2">
-        {Array.from({ length: maxIndex + 1 }, (_, index) => (
-          <button
-            key={index}
-            onClick={() => scrollTo(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex
-                ? "bg-white"
-                : "bg-white/40 hover:bg-white/60"
-            }`}
-          />
-        ))}
-      </div>
+      {/* Dots - Only show if there are multiple pages */}
+      {maxIndex > 0 && (
+        <div className="flex justify-center mt-4 space-x-2">
+          {Array.from({ length: maxIndex + 1 }, (_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollTo(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex
+                  ? "bg-white"
+                  : "bg-white/40 hover:bg-white/60"
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -594,6 +609,8 @@ export default function MyWorkSection() {
               ))}
             </NavigationCarousel>
           </div>
+           {/* <CarouselSpacing></CarouselSpacing> */}
+
         </div>
 
         {/* Landscape Video Section */}
