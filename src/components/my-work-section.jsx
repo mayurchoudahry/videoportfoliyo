@@ -111,6 +111,20 @@ const phoneProjects = [
     category: "Event",
     thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757144404/IMG_8495_u5zs9x.jpg" 
   },
+  {
+    id: 9,
+    title: "Bombboo Anna ",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1760687574/IMG_0721_fhzfwc.mov",
+    category: "Commercail",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1760687699/IMG_1201_jxnxeh.jpg" 
+  },
+  {
+    id: 10,
+    title: "Bombboo Anna ",
+    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1760687576/IMG_0924_gowyzw.mov",
+    category: "Commercail",
+    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1760687700/IMG_1200_ebgtb9.jpg" 
+  },
 ];
 
 // Navigation Carousel Component
