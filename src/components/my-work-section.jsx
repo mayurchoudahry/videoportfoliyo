@@ -79,13 +79,13 @@ const landscapeProjects = [
     category: "Cinematic",
     thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757139694/IMG_8487_k2iy6t.jpg" 
   },
-  {
-    id: 13,
-    title: "Coastal Scenes",
-    videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757011361/IMG_8461_nqfdif.mov",
-    category: "Landscape", 
-    thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757139694/IMG_8489_ej2sat.jpg" 
-  }
+  // {
+  //   id: 13,
+  //   title: "Coastal Scenes",
+  //   videoUrl: "https://res.cloudinary.com/da8mfzgxw/video/upload/v1757011361/IMG_8461_nqfdif.mov",
+  //   category: "Landscape", 
+  //   thumbnail: "https://res.cloudinary.com/da8mfzgxw/image/upload/v1757139694/IMG_8489_ej2sat.jpg" 
+  // }
 ];
 
 // Phone video projects
